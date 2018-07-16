@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareMuse</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+<body>
+  <script>
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token = 'BQD9BbwBz442KPoTAYlIAMLIB1paS52HceZGlTmDJLHhpA9_O2uA-o0YEH2QgNWfDLUyMjSUuty3I6PVsSZ-9pbXiqWYk1jptKSd1VhMUiYPS7OnVP0BRLi2awliKRWChIpDkO_8U6qIRF1Aax-dOYVNlunq2KL8cwwNIQ';
+      const player = new Spotify.Player({
+        name: 'Web Playback SDK Quick Start Player',
+        getOAuthToken: cb => { cb(token); }
+      });
+
+      // Error handling
+      player.addListener('initialization_error', ({ message }) => { console.error(message); });
+      player.addListener('authentication_error', ({ message }) => { console.error(message); });
+      player.addListener('account_error', ({ message }) => { console.error(message); });
+      player.addListener('playback_error', ({ message }) => { console.error(message); });
+
+      // Playback status updates
+      player.addListener('player_state_changed', state => { console.log(state); });
+
+      // Ready
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+      });
+
+      // Not Ready
+      player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+      });
+
+      // Connect to the player!
+      player.connect();
+    };
+    const play = ({
+      spotify_uri,
+      playerInstance: {
+        _options: {
+          getOAuthToken,
+          id
+        }
+      }
+    }) => {
+      getOAuthToken(access_token => {
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ uris: [spotify_uri] }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${access_token}`
+          },
+        });
+      });
+    };
+  </script>
+  <div class="landing-header">
+    <ul class="slideshow">
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <a class="navbar-brand" href="/">ShareMuse</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="<%= typeof page !== 'undefined' && page === 'songs' ? 'active' : '' %>"><a href="/songs">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <% if(!currentUser){ %>
+            <li class="<%= typeof page !== 'undefined' && page === 'login' ? 'active' : '' %>"><a href="/login">Login</a></li>
+            <li class="<%= typeof page !== 'undefined' && page === 'register' ? 'active' : '' %>"><a href="/register">Sign Up</a></li>
+            <% } else { %>
+            <li><a href="#">Signed In As <%= currentUser.username %></a></li>
+            <li><a href="/logout">Logout</a></li>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container">
+   <% if(error && error.length > 0) { %>
+   <div class="alert alert-danger"><p><%=error %></p></div>
+   <% } %>
+
+   <% if(success && success.length > 0) { %>
+   <div class="alert alert-success"><p><%= success %></p></div>
+   <% } %>
+ </div>
+ <div class="container">
